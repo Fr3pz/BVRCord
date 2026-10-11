@@ -570,7 +570,7 @@ export async function handleMessage(
             message.username = opts.username;
             message.author.username = message.username;
         }
-        if (Config.get().externalRequests.thirdParty && opts.avatar_url && URL.canParse(opts.avatar_url) && /^https?:$/.test(new URL(opts.avatar_url).protocol)) {
+        if (opts.avatar_url && URL.canParse(opts.avatar_url) && /^https?:$/.test(new URL(opts.avatar_url).protocol)) {
             const avatar = await fetchPublicUrl(opts.avatar_url, { signal: AbortSignal.timeout(10_000) })
                 .then(async (res) => {
                     const type = res.headers.get("content-type");
