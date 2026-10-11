@@ -745,6 +745,10 @@ export interface AdminReportUpdateSchema {
      * Also delete the reported message. Needs the MANAGE_MESSAGES right.
      */
     delete_message?: boolean;
+    /**
+     * Give every other open report on the same message, or against the same user when the report isn't about a message, the same outcome
+     */
+    include_related?: boolean;
 }
 
 export interface AdminPasswordResetSchema {

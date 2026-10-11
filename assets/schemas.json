@@ -10196,6 +10196,12 @@
             },
             "e2ee_content_key": {
                 "type": "string"
+            },
+            "e2ee_context_keys": {
+                "type": "object",
+                "additionalProperties": {
+                    "type": "string"
+                }
             }
         },
         "additionalProperties": false,
@@ -11764,6 +11770,10 @@
             },
             "delete_message": {
                 "description": "Also delete the reported message. Needs the MANAGE_MESSAGES right.",
+                "type": "boolean"
+            },
+            "include_related": {
+                "description": "Give every other open report on the same message, or against the same user when the report isn't about a message, the same outcome",
                 "type": "boolean"
             }
         },

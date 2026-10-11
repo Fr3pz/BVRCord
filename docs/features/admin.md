@@ -52,6 +52,24 @@ The Sticker packs page manages the packs every account gets in the sticker picke
 - An open client fetches the packs again after an hour and picks up new and edited packs then. A hidden or deleted pack stays in an open client until it reloads.
 - While `externalRequests.discordStickerPacks` is on, an instance with no packs at all imports Discord's catalog again. Hide the imported packs instead of deleting every pack, or turn that setting off first.
 
+## Reports
+
+The Reports page lists what people sent from the client's Report menus, newest first, filtered by status or by the reported user. The server decides what each report points at, so a reporter can't attach a server, channel or message they made up:
+
+- A message report needs a message the reporter can see. The author, server and channel come from the stored message, not from the request.
+- Server, discovery and directory reports blame the server's owner. Event reports blame the event's creator, and the reporter has to be in that server. App reports blame the app's owner.
+- A stage report names a speaker only if that person is in the server.
+- A user report keeps a server only when the reporter and the reported user are both members of it, and drops any channel or message id.
+- Reporting the same thing again while the first report is open updates that report instead of adding a second one, so one account can't stack the count.
+
+Message reports save the 15 messages before the reported one and the 10 after it, as they were at report time, so deleting the conversation later doesn't remove the context. In encrypted channels the reporter's client also shares the keys of the context messages it can read, and the server checks each one the same way as the reported message. A context message the reporter couldn't read is saved without its text.
+
+The report drawer shows:
+
+- how many open reports point at the same message or user and from how many people, with an option to close all of them at once;
+- the reported user's join date, active and total violations, and how often they were reported and how often those reports were upheld;
+- how many of the reporter's past reports were upheld or dismissed, with a "Mostly dismissed" badge for someone with at least 5 dismissed reports and three times as many dismissed as upheld.
+
 ## Slowmode
 
 Sends in a slowmode channel serialize per user and channel across processes with a PostgreSQL transaction advisory lock. The send rechecks the cooldown and saves the message, read state, member and channel pointers and a successful-send marker in one short transaction. A failed send rolls these back and uses no cooldown. The marker expires after six hours, the longest channel slowmode, and the current channel setting decides how much cooldown remains. Deleting the last message does not reset the cooldown.

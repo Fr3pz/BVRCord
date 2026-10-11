@@ -2419,6 +2419,7 @@ async function renderReports(view) {
       status: reportsState.status,
       limit: reportsState.limit,
       offset: reportsState.offset,
+      ...(reportsState.user_id ? { user_id: reportsState.user_id } : {}),
     });
     const { reports, total, counts } = await api(`/admin/reports?${params}`);
     const tabs = $("#report-tabs");
@@ -2431,8 +2432,17 @@ async function renderReports(view) {
           html`<button class="btn small ${reportsState.status === key ? "primary" : ""}" type="button" data-status="${key}">
                         ${label}${key !== "all" ? html` <span class="muted" style="${reportsState.status === key ? "color:inherit" : ""}">${fmtNumber(counts[key])}</span>` : ""}
                     </button>`,
+      ).concat(
+        reportsState.user_id
+          ? [html`<button class="btn small ghost" type="button" data-clear-user>Only reports against <code>${reportsState.user_id}</code>, show everyone</button>`]
+          : [],
       ),
     );
+    $("[data-clear-user]", tabs)?.addEventListener("click", () => {
+      reportsState.user_id = undefined;
+      reportsState.offset = 0;
+      load();
+    });
     mount(
       results,
       reports.length
@@ -2456,7 +2466,10 @@ async function renderReports(view) {
                                                   <strong>${REPORT_TYPES[r.type] ?? r.type}</strong>
                                                   <div class="muted">${r.reason || "No reason picked"}</div>
                                               </td>
-                                              <td>${reportTarget(r)}</td>
+                                              <td>
+                                                  ${reportTarget(r)}
+                                                  ${r.related?.open > 1 ? html`<span class="badge warn" title="${fmtNumber(r.related.open)} open reports from ${fmtNumber(r.related.reporters)} people">${fmtNumber(r.related.open)} reports</span>` : ""}
+                                              </td>
                                               <td class="hide-sm">
                                                   ${r.reporter ? html`<div class="ident">${avatar(r.reporter)}<span>${userName(r.reporter)}</span></div>` : "—"}
                                               </td>
@@ -2589,6 +2602,40 @@ function openReport(r, reload) {
                 : ""
             }
 
+            ${
+              r.related?.open > 1
+                ? html`<div class="card"><strong>${fmtNumber(r.related.open)} open reports</strong> <span class="muted">from ${fmtNumber(r.related.reporters)} ${r.related.reporters === 1 ? "person" : "different people"} about this ${r.related.scope === "message" ? "message" : "user"}.</span></div>`
+                : ""
+            }
+
+            ${
+              snap.context?.length
+                ? html`<details class="card report-context" open>
+                          <summary><h3 style="display:inline">Conversation around it</h3> <span class="muted">${fmtNumber(snap.context.length)} messages, saved when it was reported</span></summary>
+                          <div class="report-context-list">
+                              ${[...snap.context.filter((m) => !m.after), { reported: true }, ...snap.context.filter((m) => m.after)].map((m) =>
+                                m.reported
+                                  ? html`<div class="report-context-item reported">
+                                            <strong>${snap.author ? userName(snap.author) : "Reported message"}</strong>
+                                            <span class="muted">Reported message</span>
+                                            <p>${snap.content || html`<span class="muted">No text</span>`}</p>
+                                        </div>`
+                                  : html`<div class="report-context-item ${m.author?.id === r.reported_user?.id ? "same-author" : ""}">
+                                            <strong>${m.author ? userName(m.author) : "Unknown"}</strong>
+                                            <span class="muted">${fmtDate(m.sent_at)}</span>
+                                            ${m.encrypted && !m.encrypted.verified ? html`<span class="badge">Encrypted, not shared</span>` : ""}
+                                            <p>${
+                                              m.content ||
+                                              html`<span class="muted">${m.encrypted && !m.encrypted.verified ? "The reporter couldn't read this one" : m.type && m.type !== 0 && m.type !== 19 ? "System message" : "No text"}</span>`
+                                            }</p>
+                                            ${m.files || m.embeds ? html`<span class="muted">${[m.files ? `${fmtNumber(m.files)} ${m.files === 1 ? "file" : "files"}` : "", m.embeds ? `${fmtNumber(m.embeds)} ${m.embeds === 1 ? "embed" : "embeds"}` : ""].filter(Boolean).join(", ")}</span>` : ""}
+                                        </div>`,
+                              )}
+                          </div>
+                      </details>`
+                : ""
+            }
+
             <div class="card">
                 <div class="list">
                     ${
@@ -2627,6 +2674,19 @@ function openReport(r, reload) {
                           })()}</span></div>`
                         : ""
                     }
+                    ${
+                      r.reported_user_history
+                        ? html`<div class="list-item">
+                                  <span class="grow muted">Their history</span>
+                                  <span style="text-align:right">
+                                      ${r.reported_user_history.created_at ? html`Joined ${fmtDate(r.reported_user_history.created_at)}<br />` : ""}
+                                      ${fmtNumber(r.reported_user_history.violations.active)} active of ${fmtNumber(r.reported_user_history.violations.total)} ${r.reported_user_history.violations.total === 1 ? "violation" : "violations"}<br />
+                                      Reported ${fmtNumber(r.reported_user_history.reports.open + r.reported_user_history.reports.resolved + r.reported_user_history.reports.dismissed)} times, ${fmtNumber(r.reported_user_history.reports.resolved)} upheld
+                                  </span>
+                                  ${access.reports ? html`<button class="btn small ghost" type="button" data-filter-user="${r.reported_user.id}">All reports</button>` : ""}
+                              </div>`
+                        : ""
+                    }
                     ${r.application_id ? html`<div class="list-item"><span class="grow muted">App</span><code>${r.application_id}</code></div>` : ""}
                     ${r.guild_scheduled_event_id ? html`<div class="list-item"><span class="grow muted">Event</span><code>${r.guild_scheduled_event_id}</code></div>` : ""}
                     <div class="list-item">
@@ -2634,6 +2694,15 @@ function openReport(r, reload) {
                         ${r.reporter ? html`<span class="ident">${avatar(r.reporter)}<span>${userName(r.reporter)}</span></span>` : "—"}
                         ${r.reporter && access.users ? html`<button class="btn small ghost" type="button" data-open-user="${r.reporter.id}">Open</button>` : ""}
                     </div>
+                    ${
+                      r.reporter_record
+                        ? html`<div class="list-item">
+                                  <span class="grow muted">Their past reports</span>
+                                  <span>${fmtNumber(r.reporter_record.resolved)} upheld, ${fmtNumber(r.reporter_record.dismissed)} dismissed, ${fmtNumber(r.reporter_record.open)} open</span>
+                                  ${r.reporter_record.dismissed >= 5 && r.reporter_record.dismissed > r.reporter_record.resolved * 3 ? html`<span class="badge warn">Mostly dismissed</span>` : ""}
+                              </div>`
+                        : ""
+                    }
                     ${answers.map(
                       ([key, value]) =>
                         html`<div class="list-item">
@@ -2709,6 +2778,17 @@ function openReport(r, reload) {
                       `
                     : ""
                 }
+                ${
+                  r.related?.open > 1
+                    ? html`
+                        <label class="toggle"
+                          ><input type="checkbox" name="include_related" checked /><span
+                            >Apply to all ${fmtNumber(r.related.open)} open reports<span class="hint">Every open report on this ${r.related.scope === "message" ? "message" : "user"} gets the same outcome and note.</span></span
+                          ></label
+                        >
+                      `
+                    : ""
+                }
                 <div class="form-actions">
                     ${
                       r.status !== "open"
@@ -2741,6 +2821,17 @@ function openReport(r, reload) {
     btn.addEventListener("click", () => openUser(btn.dataset.openUser, reload));
   for (const btn of $$("[data-open-guild]", body))
     btn.addEventListener("click", () => openGuild(btn.dataset.openGuild, reload));
+  const reportedInContext = $(".report-context-item.reported", body);
+  if (reportedInContext) reportedInContext.parentElement.scrollTop = reportedInContext.offsetTop - reportedInContext.parentElement.offsetTop - 120;
+  for (const btn of $$("[data-filter-user]", body))
+    btn.addEventListener("click", () => {
+      reportsState.status = "all";
+      reportsState.user_id = btn.dataset.filterUser;
+      reportsState.offset = 0;
+      closeDrawer();
+      location.hash = "#/reports";
+      reload?.();
+    });
 
   $("#report-violation", body)?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -2780,6 +2871,7 @@ function openReport(r, reload) {
             status,
             resolution_note: form.note.value,
             ...(deleting ? { delete_message: true } : {}),
+            ...(form.include_related?.checked ? { include_related: true } : {}),
           },
         }),
       { open: "Report reopened", dismissed: "Report dismissed", resolved: "Report resolved" }[

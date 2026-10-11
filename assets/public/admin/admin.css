@@ -1018,6 +1018,34 @@ td {
   font-variant-numeric: tabular-nums;
 }
 
+.report-context summary {
+  cursor: pointer;
+}
+.report-context-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 420px;
+  margin-top: 10px;
+  overflow-y: auto;
+}
+.report-context-item {
+  padding: 6px 10px;
+  border-left: 3px solid transparent;
+  border-radius: 4px;
+}
+.report-context-item p {
+  margin: 2px 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.report-context-item.same-author {
+  border-left-color: var(--warn);
+}
+.report-context-item.reported {
+  border-left-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+}
 .report-attachments {
   display: flex;
   flex-wrap: wrap;
