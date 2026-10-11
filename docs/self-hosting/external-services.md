@@ -28,6 +28,20 @@ GIF search is an explicit exception to the local operation policy. It has its ow
 
 This is a source/configuration inventory, not a claim that `thirdParty=false` is an outbound firewall. Configured email/storage, arbitrary links, callbacks, themes, activities and optional client plugins need separate operator control. Discord telemetry/Sentry endpoints are disabled in the local client bootstrap; they are not a required service.
 
+## Hiding the server's address
+
+The server fetches URLs that users and bots pick: link previews, the `/external` media proxy, video preview frames, webhook `avatar_url` images, interaction endpoints, web push endpoints and domain verification. Each of these goes through `fetchPublicUrl`, which sends the request through the SOCKS5 proxy in `PUBLIC_FETCH_PROXY`, so the site that receives it sees the proxy's address instead of the server's.
+
+Docker Compose starts a `warp` service from `caomingjun/warp`, which runs Cloudflare WARP with a SOCKS5 listener on port 1080, and points the server at `socks5://warp:1080`. A WARP+ key in `WARP_LICENSE_KEY` is optional. A native install can run the same container, or run `warp-cli` in proxy mode, and set `PUBLIC_FETCH_PROXY` to that listener.
+
+| `PUBLIC_FETCH_PROXY` | Result                                                                                         |
+| -------------------- | ---------------------------------------------------------------------------------------------- |
+| `socks5://host:port` | Requests to public addresses go through the proxy.                                             |
+| `direct`             | Requests go out from the server's own address. Use it only for development.                    |
+| unset                | Requests to public addresses fail, so a missing proxy never reveals the server's address.      |
+
+The server resolves the hostname itself, refuses private addresses, and asks the proxy to connect to the checked IP address, so a hostname can't resolve to something else on the proxy's side. Requests to the instance's own CDN and to private addresses allowed by `security.allowPrivateNetworkRequests` stay direct, since the proxy can't reach them. Responses through the proxy are limited to the same sizes as direct ones, and compressed responses are refused.
+
 ## GIF providers
 
 The Tenor provider uses the public key and `https://api.tenor.com/v1/search` endpoint from the checked-in Vencord source and is not redirected to Klipy. Google [announced the Tenor API retirement for June 30, 2026](https://support.google.com/tenor/answer/10455265), so this endpoint can stop answering.

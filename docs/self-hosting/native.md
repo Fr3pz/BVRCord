@@ -137,11 +137,14 @@ WRTC_PUBLIC_IP=203.0.113.10
 WRTC_PORT_MIN=50000
 WRTC_PORT_MAX=50000
 LOG_REQUESTS=500,501
+PUBLIC_FETCH_PROXY=socks5://127.0.0.1:1080
 ```
 
 Write literal values; systemd environment files do not expand `$VARIABLE` references. Do not copy the Compose environment unchanged: native hosting needs `DATABASE`, `PORT`, `WRTC_PORT_MIN` and `PION_SFU_BIN`, rather than Compose's database, host-port and separate SFU settings.
 
 The existing `scripts/docker-configure.js` also works outside Docker. The service runs it before each start to set the public API, CDN, gateway and voice URLs, and to trust only the local proxy. It writes `config.json`, which the server fills with defaults and the admin dashboard can edit. Optional `INSTANCE_NAME`, SMTP and Cap variables supported by that script are described in [deploy.md](deploy.md#environment). The built-in Cap mode works without an external captcha service. External requests are controlled separately; see [external-services.md](external-services.md).
+
+`PUBLIC_FETCH_PROXY` names the SOCKS5 proxy that fetches of user-chosen URLs go through, so the sites behind link previews and webhook avatars never see the server's address. Without it those fetches fail. Run Cloudflare WARP in proxy mode with `warp-cli mode proxy` and `warp-cli proxy port 1080`, or run the `caomingjun/warp` container from `docker-compose.yml` with port 1080 published on `127.0.0.1`. See [external-services.md](external-services.md#hiding-the-servers-address).
 
 Leave `THREADS` and `WRTC_WS_PORT` unset. The bundle uses one server process and serves the voice websocket at `/voice` on port 3001. It starts and supervises the SFU as the same unprivileged user. Voice media uses 50000/udp directly, so behind NAT forward that port and announce the outside address in `WRTC_PUBLIC_IP`.
 
