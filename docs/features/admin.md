@@ -42,6 +42,10 @@ Sends in a slowmode channel serialize per user and channel across processes with
 
 Slowmode applies to owners, administrators and members with Manage messages, Manage channels or Bypass slowmode. Turning on `limits.channel.allowSlowmodeBypass` in Site settings restores those permission exemptions. Edits and webhook messages do not use the cooldown. A rejected send returns HTTP 429 with code 20016 and `retry_after` in seconds, and the client shows its countdown and keeps the draft.
 
+## System
+
+The System page needs the operator right. It shows the bundled client and its patch check, link previews, voice and the Shop catalogue. The Link previews card reads `GET /admin/system/network`, which reports whether `PUBLIC_FETCH_PROXY` names a SOCKS5 proxy, says `direct`, is unset or is invalid, whether that proxy accepts a TCP connection within 2 seconds, and whether `externalRequests.thirdParty` is on. With the variable unset or invalid, link previews and components media fail, and the card says so.
+
 ## Performance
 
 The Performance page needs the operator right. It reports this process's uptime, memory, event-loop delay, database connectivity, mean route latency, request counts, 5xx errors and rate limiting. These are process-lifetime numbers, not distributed telemetry or per-route percentiles. Overview counts refresh every 30 seconds, and the revision is read once at startup.

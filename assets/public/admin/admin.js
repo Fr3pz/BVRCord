@@ -5086,12 +5086,13 @@ async function renderSystem(view) {
       <div class="page-head">
         <div>
           <h1>System</h1>
-          <p class="muted">The bundled web client, its Vencord mods, the Shop catalogue and voice.</p>
+          <p class="muted">The bundled web client, its Vencord mods, link previews, the Shop catalogue and voice.</p>
         </div>
         <button class="btn" id="system-refresh" type="button">Check again</button>
       </div>
       <div class="stack">
         <div id="system-client" class="stack"><div class="card spinner">Loading client status…</div></div>
+        <div class="card stack" id="system-network"><div class="spinner">Loading link preview status…</div></div>
         <div class="card stack" id="system-voice"><div class="spinner">Loading voice status…</div></div>
         <div class="card stack" id="system-collectibles">
           <div class="spinner">Loading Shop catalogue…</div>
@@ -5111,6 +5112,7 @@ async function renderSystem(view) {
   };
   await Promise.all([
     api("/admin/system/client").then(renderClientStatus, fail($("#system-client"), "Web client")),
+    api("/admin/system/network").then(renderNetworkStatus, fail($("#system-network"), "Link previews")),
     api("/admin/system/voice").then(renderVoiceStatus, fail($("#system-voice"), "Voice")),
     api("/admin/system/collectibles").then(
       renderCollectiblesStatus,
@@ -5342,6 +5344,36 @@ function renderClientStatus({ client, vencord, patch_check: check }) {
                 <p class="muted" style="margin:12px 0 0">Run <code>npm run check:client</code> on the server after updating the client or the plugins to refresh this.</p>
             </div>
         `,
+  );
+}
+
+function renderNetworkStatus(n) {
+  const el = $("#system-network");
+  if (!el) return;
+  const badge =
+    n.mode === "proxy" && n.reachable
+      ? html`<span class="badge ok"><span class="dot"></span>Through the proxy</span>`
+      : n.mode === "direct"
+        ? html`<span class="badge warn"><span class="dot"></span>Direct</span>`
+        : html`<span class="badge danger"><span class="dot"></span>Refusing public URLs</span>`;
+  mount(
+    el,
+    html`
+      <div class="row" style="justify-content:space-between">
+        <h2 style="margin:0">Link previews</h2>
+        ${badge}
+      </div>
+      <p class="muted" style="margin:0">
+        Link previews, components media, webhook avatar images and the media proxy fetch user-chosen URLs through the SOCKS5 proxy in
+        <code>PUBLIC_FETCH_PROXY</code>.
+      </p>
+      <div class="list">
+        ${item("PUBLIC_FETCH_PROXY", n.proxy ? html`<code>socks5://${n.proxy}</code>` : n.mode === "direct" ? html`<code>direct</code>` : n.mode === "unset" ? "Not set" : "Invalid")}
+        ${n.reachable === null ? "" : item("Proxy connection", n.reachable ? html`<span class="badge ok">Reachable</span>` : html`<span class="badge danger">Unreachable</span>`)}
+        ${item("Third-party requests", n.third_party ? "On" : html`<span class="badge warn">Off</span> <span class="muted">links to other sites get no preview</span>`)}
+        ${n.problem ? item("Problem", html`<span class="form-error">${n.problem}</span>`) : ""}
+      </div>
+    `,
   );
 }
 

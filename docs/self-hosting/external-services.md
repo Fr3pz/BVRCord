@@ -40,6 +40,8 @@ Docker Compose starts a `warp` service from `caomingjun/warp`, which runs Cloudf
 | `direct`             | Requests go out from the server's own address. Use it only for development.                    |
 | unset                | Requests to public addresses fail, so a missing proxy never reveals the server's address.      |
 
+The server checks the setting when it starts. A missing, invalid or `direct` value prints a `[Network] Warning` line in the log, and the System page of the admin dashboard has a Link previews card that shows the mode, whether the proxy accepts a TCP connection within 2 seconds, and whether `externalRequests.thirdParty` is on. An unset or invalid value still refuses every public URL, so link previews and components media stop working until it is fixed.
+
 The server resolves the hostname itself, refuses private addresses, and asks the proxy to connect to the checked IP address, so a hostname can't resolve to something else on the proxy's side. Requests to the instance's own CDN and to private addresses allowed by `security.allowPrivateNetworkRequests` stay direct, since the proxy can't reach them. Responses through the proxy are limited to the same sizes as direct ones, and compressed responses are refused.
 
 ## GIF providers
