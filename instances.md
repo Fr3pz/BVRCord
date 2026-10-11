@@ -9,3 +9,4 @@ public meowcord instances. to add yours, open a pull request that adds a row.
 | Buncord  | [bun.social](https://bun.social) | [april83c/meowcord-patches](https://github.com/april83c/meowcord-patches) |
 | Dihcord  | [dihcord.team](https://dihcord.team) | [sy62e/dihcord](https://github.com/sy62e/dihcord) |
 | Meowcerra | [meow.soccera.uk](https://meow.soccera.uk) | [soccera1/meowcord](https://github.com/soccera1/meowcord) |
+| idkcord  | [ang.taild5450d.ts.net](https://ang.taild5450d.ts.net) | [anamelessguy1/meowcord](https://github.com/anamelessguy1/meowcord) |
