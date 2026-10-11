@@ -11,9 +11,7 @@ encryption has not yet been audited, and you will find plenty of bugs and issues
 
 ## getting started
 
-follow [the native Linux guide](docs/self-hosting/native.md) to run the server as a dedicated `meowcord` user with systemd, local PostgreSQL and an HTTPS reverse proxy. it covers permissions, voice, operator access, backups and updates without Docker.
-
-[the setup guide](docs/self-hosting/setup.md) also covers Docker, local development and the source archive.
+follow [the setup guide](docs/self-hosting/setup.md) for Docker, local development and the source archive. to run without Docker, [the native Linux guide](docs/self-hosting/native.md) sets the server up as a dedicated `meowcord` user with systemd, local PostgreSQL and an HTTPS reverse proxy, and covers voice, operator access, backups and updates.
 
 for Docker, copy `.env.example` to `.env`, set your instance domain, PostgreSQL password and public voice address, then run:
 
