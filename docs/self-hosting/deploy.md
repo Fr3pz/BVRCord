@@ -126,6 +126,20 @@ docker compose start server
 
 The restore helper verifies checksums, stops the target server and refuses a populated public database schema or nonempty file volumes. It restores the dump in one transaction and restores matching signing keys, recovery keys, managed sender keys, queued announcements and attachments. A failed restore leaves the server stopped. Inspect the restored files and database before starting it. Named volumes use `MEOWCORD_VOLUME_PREFIX`, independent of the Compose project name.
 
+### Shop catalogue
+
+The free Shop lists decorations, profile effects, nameplates and bundles from `assets/collectibles.json` and `assets/profile-effects.json`. Neither file is in the repository or the image, so a new instance has an empty Shop until you provide them. Both files hold the JSON arrays that Discord's `collectibles-categories` and profile effects endpoints return.
+
+With Docker, mount your copies read-only into the server service and restart it:
+
+```yaml
+    volumes:
+      - ./assets/collectibles.json:/app/assets/collectibles.json:ro
+      - ./assets/profile-effects.json:/app/assets/profile-effects.json:ro
+```
+
+To download them from a URL instead, set `COLLECTIBLES_EXTERNAL_REFRESH=true`, `COLLECTIBLES_CATALOG_URL` and `PROFILE_EFFECTS_CATALOG_URL`. The server then downloads both every 12 hours, or every `COLLECTIBLES_REFRESH_HOURS`, and keeps the last good copy when a download fails. The files must be writable for this, so don't mount them read-only. The Shop catalogue card in the admin dashboard shows where the files came from, when they last changed, and what went wrong with the last refresh.
+
 ### Updating
 
 ```sh
