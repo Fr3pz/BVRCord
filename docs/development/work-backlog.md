@@ -220,7 +220,7 @@ Start with `CONTRIBUTING.MD; docs/self-hosting/native.md; docs/self-hosting/depl
 - [ ] **OPS-003** Commit verified changes in small coherent batches.
 - [ ] **OPS-005** Keep localhost demo source synchronized with committed main.
 - [ ] **OPS-007** Document safe current commands for encryption fixtures.
-- [ ] **OPS-008** Publish complete versioned client asset snapshots.
+- [ ] **OPS-008** Publish complete versioned client asset snapshots. The reviewed index for each pin is published as the `client-<buildNumber>` GitHub release and `scripts/client.js` downloads it, see [client-patches.md](client-patches.md#reviewed-client-releases). The assets still come from discord.com, so a build whose assets Discord deletes cannot be installed fresh.
 - [ ] **OPS-009** Verify deployment health and service restart behavior. [native.md](../self-hosting/native.md) documents the dedicated service account, systemd unit and health checks. A fresh-host installation, restart and restore exercise remains to be run.
 - [ ] **OPS-010** Keep private keys, credentials and test accounts out of Git. Runtime environment variants are ignored while `.env.example` stays public, and a regression covers environment files, recovery keys, generated account files and client caches. Arbitrary filenames and historical secret scanning remain open.
 - [ ] **OPS-011** Check rollback and asset-cache behavior after client updates.
