@@ -2615,7 +2615,17 @@ function openReport(r, reload) {
                               </div>`
                         : ""
                     }
-                    ${r.channel ? html`<div class="list-item"><span class="grow muted">Channel</span><span>${r.channel.name ? `#${r.channel.name}` : html`<code>${r.channel.id}</code>`}</span></div>` : ""}
+                    ${
+                      r.channel
+                        ? html`<div class="list-item"><span class="grow muted">Channel</span><span>${(() => {
+                            const people = (r.channel.recipients ?? []).map(userName);
+                            const listed = people.length > 4 ? `${people.slice(0, 4).join(", ")} and ${people.length - 4} more` : people.join(", ").replace(/, ([^,]*)$/, " and $1");
+                            if (r.channel.type === 1) return people.length ? `DM between ${listed}` : "DM";
+                            if (r.channel.type === 3) return r.channel.name || (people.length ? `Group DM with ${listed}` : "Group DM");
+                            return r.channel.name ? `#${r.channel.name}` : html`<code>${r.channel.id}</code>`;
+                          })()}</span></div>`
+                        : ""
+                    }
                     ${r.application_id ? html`<div class="list-item"><span class="grow muted">App</span><code>${r.application_id}</code></div>` : ""}
                     ${r.guild_scheduled_event_id ? html`<div class="list-item"><span class="grow muted">Event</span><code>${r.guild_scheduled_event_id}</code></div>` : ""}
                     <div class="list-item">
