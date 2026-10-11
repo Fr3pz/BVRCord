@@ -2528,6 +2528,8 @@ function openReport(r, reload) {
                 ? html`<div class="card stack" style="gap:8px">
                           <div class="row" style="justify-content:space-between">
                               <h3 style="margin:0">${r.type === "widget" ? `Reported widget${snap.name ? `: ${snap.name}` : ""}` : "Reported message"}</h3>
+                              <span class="row" style="gap:6px">
+                              ${snap.encrypted ? (snap.encrypted.verified ? html`<span class="badge ok">Verified encrypted text</span>` : html`<span class="badge warn">Encrypted, not verified</span>`) : ""}
                               ${
                                 r.type === "widget"
                                   ? ""
@@ -2539,6 +2541,7 @@ function openReport(r, reload) {
                                         <span class="badge danger">Deleted</span>
                                       `
                               }
+                              </span>
                           </div>
                           ${
                             snap.author
@@ -2568,8 +2571,19 @@ function openReport(r, reload) {
                                     </div>`
                               : ""
                           }
+                          ${
+                            snap.encrypted?.files?.length
+                              ? html`<span class="muted">Encrypted ${snap.encrypted.files.length === 1 ? "file" : "files"} not shown: ${snap.encrypted.files.join(", ")}</span>`
+                              : ""
+                          }
                           ${snap.embeds ? html`<span class="muted">${fmtNumber(snap.embeds)} ${snap.embeds === 1 ? "embed" : "embeds"} not shown</span>` : ""}
-                          <span class="muted">This is how the message looked when it was reported.</span>
+                          ${
+                            snap.encrypted
+                              ? snap.encrypted.verified
+                                ? html`<span class="muted">This message was end-to-end encrypted. The reporter's client shared its key, and the server checked the sender's signature, so this is the text the sender sent.</span>`
+                                : html`<span class="muted">This message is end-to-end encrypted and its text couldn't be checked. ${snap.encrypted.reason ?? ""}</span>`
+                              : html`<span class="muted">This is how the message looked when it was reported.</span>`
+                          }
                       </div>`
                 : ""
             }

@@ -10193,6 +10193,9 @@
             },
             "widget_id": {
                 "type": "string"
+            },
+            "e2ee_content_key": {
+                "type": "string"
             }
         },
         "additionalProperties": false,
