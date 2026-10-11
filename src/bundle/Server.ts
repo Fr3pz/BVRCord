@@ -11,7 +11,7 @@ import { SpacebarServer } from "@spacebar/api";
 import { CDNServer } from "@spacebar/cdn";
 import { initDatabase } from "@spacebar/database";
 import { clearCallStateOnStartup, GatewayServer } from "@spacebar/gateway";
-import { Config, homePage } from "@spacebar/util";
+import { Config, homePage, requestOrigin } from "@spacebar/util";
 import { WebrtcServer } from "@spacebar/webrtc";
 import { ProcessLifecycle } from "../util/util/ProcessLifecycle";
 import { Monitoring } from "../util/monitoring/Monitoring";
@@ -74,7 +74,12 @@ async function main() {
         );
     }
 
-    app.get("/", (req, res) => res.set("Cache-Control", "no-cache").type("html").send(homePage()));
+    app.get("/", (req, res) =>
+        res
+            .set("Cache-Control", "no-cache")
+            .type("html")
+            .send(homePage(requestOrigin(req))),
+    );
 
     await clearCallStateOnStartup();
     await new Promise((resolve) => void server.listen({ port }, () => resolve(undefined)));
